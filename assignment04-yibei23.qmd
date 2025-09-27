@@ -1,0 +1,280 @@
+---
+title: Assignment 04
+author:
+  - name: Yibei Yu
+    affiliations:
+      - id: bu
+        name: Boston University
+        city: Boston
+        state: MA
+number-sections: true
+date: '2025-9-27'
+date-modified: today
+date-format: long
+format:
+  html:
+    theme: cerulean
+    toc: true
+    toc-depth: 2
+
+execute:
+  echo: false
+  eval: true
+  freeze: auto
+---
+```{python}
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.appName("LightcastData").getOrCreate()
+
+df = spark.read.option("header", "true").option("inferSchema", "true") \
+    .option("multiLine","true").option("escape", "\"") \
+    .csv("data/lightcast_job_postings.csv")
+
+print()
+df.show(5)
+df.printSchema()
+```
+
+```{python}
+from pyspark.sql.functions import pow
+from pyspark.ml.feature import StringIndexer, OneHotEncoder, VectorAssembler
+df = df.na.drop(subset=["SALARY", "MIN_YEARS_EXPERIENCE", "ONET_NAME", "COMPANY_NAME"])
+df = df.withColumn("MIN_YEARS_EXPERIENCE_SQ", pow(df["MIN_YEARS_EXPERIENCE"], 2))
+
+cont_features = ["MIN_YEARS_EXPERIENCE", "MAX_YEARS_EXPERIENCE", "POSTED_DATE_NUM", "MIN_YEARS_EXPERIENCE_SQ"]
+cat_features = ["ONET_NAME", "COMPANY_NAME"]
+indexers = [StringIndexer(inputCol=col, outputCol=col+"_idx", handleInvalid="keep") for col in cat_features]
+encoders = [OneHotEncoder(inputCol=col+"_idx", outputCol=col+"_ohe") for col in cat_features]
+
+assembler = VectorAssembler(
+    inputCols=cont_features + [col+"_ohe" for col in cat_features],
+    outputCol="features"
+)
+
+assembler_poly = VectorAssembler(
+    inputCols=cont_features + [col+"_ohe" for col in cat_features],
+    outputCol="features_poly"
+)
+
+df.printSchema()
+```
+
+# Polynomial Regression
+```{python}
+from pyspark.sql.functions import to_date, unix_timestamp, pow
+from pyspark.ml.regression import LinearRegression
+from pyspark.ml import Pipeline
+from pyspark.ml.evaluation import RegressionEvaluator
+
+df = df.withColumn("POSTED_DATE", to_date("POSTED", "M/d/yyyy"))
+df = df.withColumn("POSTED_DATE_NUM", unix_timestamp("POSTED_DATE"))
+
+df = df.na.drop(subset=[
+    "SALARY",
+    "MIN_YEARS_EXPERIENCE",
+    "MAX_YEARS_EXPERIENCE",
+    "POSTED_DATE_NUM",
+    "ONET_NAME",
+    "COMPANY_NAME"
+])
+
+df = df.withColumn("MIN_YEARS_EXPERIENCE_SQ", pow(df["MIN_YEARS_EXPERIENCE"], 2))
+cont_features = [
+    "MIN_YEARS_EXPERIENCE",
+    "MAX_YEARS_EXPERIENCE",
+    "POSTED_DATE_NUM",
+    "MIN_YEARS_EXPERIENCE_SQ"
+]
+cat_features = ["ONET_NAME", "COMPANY_NAME"]
+
+lr_poly = LinearRegression(featuresCol="features_poly", labelCol="SALARY")
+pipeline_poly = Pipeline(stages=indexers + encoders + [assembler_poly, lr_poly])
+
+train_data, test_data = df.randomSplit([0.8, 0.2], seed=42)
+model_poly = pipeline_poly.fit(train_data)
+predictions_poly = model_poly.transform(test_data)
+predictions_poly.select("SALARY", "prediction", "features_poly").show(10, truncate=False)
+
+evaluator_rmse = RegressionEvaluator(
+    labelCol="SALARY", predictionCol="prediction", metricName="rmse"
+)
+evaluator_r2 = RegressionEvaluator(
+    labelCol="SALARY", predictionCol="prediction", metricName="r2"
+)
+
+rmse_poly = evaluator_rmse.evaluate(predictions_poly)
+r2_poly = evaluator_r2.evaluate(predictions_poly)
+
+print(f"Root Mean Squared Error (RMSE) - Polynomial Model: {rmse_poly}")
+print(f"R-squared (R2) - Polynomial Model: {r2_poly}")
+
+lr_model_poly = model_poly.stages[-1]  # 取出最后的 LinearRegression 模型
+print("\n=== Polynomial Regression Model Summary ===")
+print(f"Intercept: {lr_model_poly.intercept}")
+print(f"Number of Coefficients: {len(lr_model_poly.coefficients)}")
+for i, coef in enumerate(lr_model_poly.coefficients[:10]):  # 只展示前10个
+    print(f"Feature {i}: coef={coef}")
+```
+**Analysis**
+In the first model, I chose linear regression and added polynomial features. The results showed that the RMSE of the model was approximately 23,914, which means that the average error between the predicted value and the actual salary is around 24,000; the R² was approximately 0.573, indicating that the model can explain approximately 57% of salary fluctuations. In terms of coefficients, the model estimated 1,049 parameters, including continuous variables and a large number of one-hot encoded categorical variables. The coefficients of some features are positive, meaning that an increase in the relevant features will drive up salaries; some are negative, indicating that they are associated with lower salary levels. However, because Spark's default l-bfgs optimizer does not calculate standard errors, t-values, and p-values, it is impossible to directly determine which coefficients are statistically significant.
+
+
+# Linear Regression
+```{python}
+from pyspark.ml.regression import LinearRegression
+from pyspark.ml import Pipeline
+from pyspark.ml.evaluation import RegressionEvaluator
+from pyspark.ml.feature import VectorAssembler
+
+cont_features_simple = ["MIN_YEARS_EXPERIENCE", "MAX_YEARS_EXPERIENCE", "POSTED_DATE_NUM"]
+assembler_simple = VectorAssembler(
+    inputCols=cont_features_simple + [col+"_ohe" for col in cat_features],
+    outputCol="features"
+)
+
+lr_simple = LinearRegression(featuresCol="features", labelCol="SALARY")
+pipeline_simple = Pipeline(stages=indexers + encoders + [assembler_simple, lr_simple])
+train_data2, test_data2 = df.randomSplit([0.8, 0.2], seed=42)
+
+model_simple = pipeline_simple.fit(train_data2)
+predictions_simple = model_simple.transform(test_data2)
+predictions_simple.select("SALARY", "prediction", "features").show(10, truncate=False)
+
+evaluator_rmse2 = RegressionEvaluator(
+    labelCol="SALARY", predictionCol="prediction", metricName="rmse"
+)
+evaluator_r22 = RegressionEvaluator(
+    labelCol="SALARY", predictionCol="prediction", metricName="r2"
+)
+
+rmse2 = evaluator_rmse2.evaluate(predictions_simple)
+r22 = evaluator_r22.evaluate(predictions_simple)
+
+print(f"Root Mean Squared Error (RMSE) - Simple Model: {rmse2}")
+print(f"R-squared (R2) - Simple Model: {r22}")
+
+lr_model_simple = model_simple.stages[-1]
+print("\n=== Linear Regression Model Summary ===")
+print("Intercept:", lr_model_simple.intercept)
+print("Number of Coefficients:", len(lr_model_simple.coefficients))
+for i, coef in enumerate(lr_model_simple.coefficients[:10]):
+    print(f"Feature {i}: coef={coef}")
+print("Solver used:", lr_model_simple._java_obj.getSolver())
+```
+**Analysis**
+In the second model, I again applied a simplified linear regression, removing the squared polynomial terms used in the first model. This simplified the feature set and reduced the model's complexity. The results showed an RMSE of approximately 23,996, slightly lower than the 23,913 in the first model. The R² also dropped from approximately 0.573 to 0.570, indicating that the simpler model explained slightly less salary variance.
+It is important to note that due to the large number of one-hot encoded features, Spark does not provide coefficient significance statistics (such as standard errors, t-values, or p-values) when using the default l-bfgs solver. This is a known limitation when working with high-dimensional data in PySpark, so the analysis is restricted to model-level metrics like RMSE and R² rather than individual coefficient significance.
+
+**Summary**
+I constructed two regression models: a simple linear regression and a polynomial regression with squared terms. The polynomial model achieved a slightly lower RMSE (23,913 vs. 23,996) and a slightly higher R² (0.573 vs. 0.570). This suggests that adding squared features only slightly improved performance. While the polynomial model captured some nonlinear relationships, the improvement was not significant. Therefore, the polynomial model's advantage in this dataset is limited.
+
+# Random Forest Regressor
+```{python}
+from pyspark.ml import Pipeline
+from pyspark.ml.regression import RandomForestRegressor
+import matplotlib.pyplot as plt
+import numpy as np
+from pyspark.ml.evaluation import RegressionEvaluator
+
+rf = RandomForestRegressor(
+    featuresCol="features_poly",
+    labelCol="SALARY",
+    numTrees=200,
+    maxDepth=8,
+    seed=42
+)
+
+pipeline_rf = Pipeline(stages=indexers + encoders + [assembler_poly, rf])
+rf_model = pipeline_rf.fit(train_data)
+predictions_rf = rf_model.transform(test_data)
+evaluator = RegressionEvaluator(labelCol="SALARY", predictionCol="prediction", metricName="rmse")
+rmse_rf = evaluator.evaluate(predictions_rf)
+
+evaluator_r2 = RegressionEvaluator(labelCol="SALARY", predictionCol="prediction", metricName="r2")
+r2_rf = evaluator_r2.evaluate(predictions_rf)
+
+print(f"Random Forest RMSE: {rmse_rf}")
+print(f"Random Forest R²: {r2_rf}")
+
+importances = rf_model.stages[-1].featureImportances.toArray()
+cont_features = [
+    "MIN_YEARS_EXPERIENCE",
+    "MAX_YEARS_EXPERIENCE",
+    "POSTED_DATE_NUM",
+    "MIN_YEARS_EXPERIENCE_SQ"
+]
+cat_features = ["ONET_NAME", "COMPANY_NAME"]
+
+ohe_sizes = []
+for stage in rf_model.stages:
+    if stage.__class__.__name__ == "OneHotEncoderModel":
+        ohe_sizes.extend(stage.categorySizes)
+
+feature_names = cont_features.copy()
+for col, size in zip(cat_features, ohe_sizes):
+    feature_names.extend([f"{col}_{i}" for i in range(size)])
+
+if len(feature_names) > len(importances):
+    feature_names = feature_names[:len(importances)]
+elif len(feature_names) < len(importances):
+    feature_names.extend([f"unknown_{i}" for i in range(len(importances) - len(feature_names))])
+
+print("Length of feature_names:", len(feature_names))
+print("Length of importances:", len(importances))
+
+top_n = 15
+indices = np.argsort(importances)[::-1][:top_n]
+top_features = [feature_names[i] for i in indices]
+top_importances = importances[indices]
+
+plt.figure(figsize=(10, 6))
+plt.barh(range(top_n), top_importances[::-1], align="center")
+plt.yticks(range(top_n), top_features[::-1])
+plt.xlabel("Feature Importance")
+plt.title("Random Forest Feature Importance")
+plt.tight_layout()
+plt.savefig("rf_feature_importance.png")
+plt.show()
+```
+**Analysis**
+For the random forest model, I set 200 trees with a maximum depth of 8. The results show an RMSE of approximately 25,820 and an R² of approximately 0.50. This model actually performs worse than the linear and polynomial regression models, which have an R² of approximately 0.57. The error is larger, and the model explains less salary variation. The chart shows that the most important variables are the minimum and maximum years of experience, and the squared experience term. Some company names also appear significant, while posting date and job characteristics have less influence. This suggests that experience and employer influence salary more than job posting date or job title itself.
+
+# Compare GLR, Polynomial, RF
+```{python}
+from pyspark.ml import Pipeline
+from pyspark.ml.regression import GeneralizedLinearRegression
+from pyspark.ml.evaluation import RegressionEvaluator
+
+# 定义 GLR
+glr = GeneralizedLinearRegression(
+    featuresCol="features",
+    labelCol="SALARY",
+    family="gaussian",
+    link="identity"
+)
+
+# pipeline (保证 features 由 assembler_simple 生成)
+pipeline_glr = Pipeline(stages=indexers + encoders + [assembler_simple, glr])
+
+# 训练 GLR 模型
+glr_model = pipeline_glr.fit(train_data2)
+
+# 预测
+predictions_glr = glr_model.transform(test_data2)
+
+# 评估
+evaluator = RegressionEvaluator(labelCol="SALARY", predictionCol="prediction", metricName="rmse")
+rmse_glr = evaluator.evaluate(predictions_glr)
+
+evaluator_r2 = RegressionEvaluator(labelCol="SALARY", predictionCol="prediction", metricName="r2")
+r2_glr = evaluator_r2.evaluate(predictions_glr)
+
+print(f"GLR RMSE: {rmse_glr}")
+print(f"GLR R²: {r2_glr}")
+
+# AIC（直接从 GLR 模型中取）
+glr_stage = glr_model.stages[-1]   # GLR 在 pipeline 里是最后一个 stage
+aic_glr = glr_stage.summary.aic
+print(f"GLR AIC: {aic_glr}")
+
+```

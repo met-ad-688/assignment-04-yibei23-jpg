@@ -50,7 +50,7 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#polynomial-regression" id="toc-polynomial-regression" class="nav-link active" data-scroll-target="#polynomial-regression"><span class="header-section-number">1</span> Polynomial Regression</a></li>
   <li><a href="#linear-regression" id="toc-linear-regression" class="nav-link" data-scroll-target="#linear-regression"><span class="header-section-number">2</span> Linear Regression</a></li>
   <li><a href="#random-forest-regressor" id="toc-random-forest-regressor" class="nav-link" data-scroll-target="#random-forest-regressor"><span class="header-section-number">3</span> Random Forest Regressor</a></li>
-  <li><a href="#compare-glr-polynomial-rf" id="toc-compare-glr-polynomial-rf" class="nav-link" data-scroll-target="#compare-glr-polynomial-rf"><span class="header-section-number">4</span> Compare GLR, Polynomial, RF</a></li>
+  <li><a href="#module-7-compare-models" id="toc-module-7-compare-models" class="nav-link" data-scroll-target="#module-7-compare-models"><span class="header-section-number">4</span> Module 7: Compare Models</a></li>
   </ul>
 </nav>
 </div>
@@ -89,7 +89,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">September 27, 2025</p>
+      <p class="date-modified">September 28, 2025</p>
     </div>
   </div>
     
@@ -100,7 +100,7 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<div id="a0c954d1" class="cell" data-execution_count="1">
+<div id="b5458314" class="cell" data-execution_count="1">
 <div class="cell-output cell-output-stderr">
 <pre><code>[Stage 54:&gt;                                                         (0 + 1) / 1]                                                                                </code></pre>
 </div>
@@ -252,7 +252,7 @@ root
 </code></pre>
 </div>
 </div>
-<div id="5820369b" class="cell" data-execution_count="2">
+<div id="97ff1794" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-stdout">
 <pre><code>root
  |-- ID: string (nullable = true)
@@ -392,50 +392,18 @@ root
 </div>
 <section id="polynomial-regression" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> Polynomial Regression</h1>
-<div id="348d3a96" class="cell" data-execution_count="3">
+<div id="7635d60b" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-stderr">
-<pre><code>[Stage 56:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 59:&gt;                                                         (0 + 1) / 1]                                                                                25/09/27 06:10:59 WARN Instrumentation: [1aad6031] regParam is zero, which might cause numerical instability and overfitting.
-[Stage 62:&gt;                                                         (0 + 1) / 1]                                                                                25/09/27 06:11:07 WARN Instrumentation: [1aad6031] Cholesky solver failed due to singular covariance matrix. Retrying with Quasi-Newton solver.
-[Stage 63:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 64:&gt;                                                         (0 + 1) / 1]                                                                                </code></pre>
+<pre><code>[Stage 56:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 59:&gt;                                                         (0 + 1) / 1]                                                                                25/09/28 02:23:18 WARN Instrumentation: [a2e324bf] regParam is zero, which might cause numerical instability and overfitting.
+[Stage 62:&gt;                                                         (0 + 1) / 1]                                                                                25/09/28 02:23:25 WARN Instrumentation: [a2e324bf] Cholesky solver failed due to singular covariance matrix. Retrying with Quasi-Newton solver.
+[Stage 63:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 64:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 65:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 66:&gt;                                                         (0 + 1) / 1]</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>+------+------------------+----------------------------------------------------------+
-|SALARY|prediction        |features_poly                                             |
-+------+------------------+----------------------------------------------------------+
-|77700 |83905.1236210065  |(1049,[0,1,2,3,4],[1.0,1.0,1.7241984E9,1.0,1.0])          |
-|96750 |98333.96682306292 |(1049,[0,1,2,3,4,5],[4.0,4.0,1.7248032E9,16.0,1.0,1.0])   |
-|79000 |93658.81569879135 |(1049,[0,1,2,3,4],[2.0,2.0,1.714608E9,4.0,1.0])           |
-|180000|155644.2695507292 |(1049,[0,1,2,3,4,6],[10.0,10.0,1.7231616E9,100.0,1.0,1.0])|
-|129600|161986.94560066063|(1049,[0,1,2,3,4,454],[5.0,5.0,1.7198784E9,25.0,1.0,1.0]) |
-|71325 |94559.34972081057 |(1049,[0,1,2,3,4],[2.0,2.0,1.7265312E9,4.0,1.0])          |
-|86100 |94109.08270980095 |(1049,[0,1,2,3,4],[2.0,2.0,1.7205696E9,4.0,1.0])          |
-|53516 |103548.64816887578|(1049,[0,1,2,3,4],[3.0,3.0,1.716336E9,9.0,1.0])           |
-|133600|138190.49657307242|(1049,[0,1,2,3,4,105],[5.0,5.0,1.7173728E9,25.0,1.0,1.0]) |
-|67500 |67499.99613080129 |(1049,[0,1,2,3,4,16],[2.0,2.0,1.724976E9,4.0,1.0,1.0])    |
-+------+------------------+----------------------------------------------------------+
-only showing top 10 rows
-</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>[Stage 65:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 66:&gt;                                                         (0 + 1) / 1]</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Root Mean Squared Error (RMSE) - Polynomial Model: 23913.60792369658
-R-squared (R2) - Polynomial Model: 0.5734300831144261
+<pre><code>Polynomial RMSE: 23913.60792369658
+Polynomial R²: 0.5734300831144261
+Polynomial MAE: 15553.715150345306
 
-=== Polynomial Regression Model Summary ===
-Intercept: -57516.675722044834
-Number of Coefficients: 1049
-Feature 0: coef=5778.053106156539
-Feature 1: coef=5778.053106156539
-Feature 2: coef=7.552788026865403e-05
-Feature 3: coef=-359.3571838665776
-Feature 4: coef=0.0
-Feature 5: coef=-14894.796938870657
-Feature 6: coef=3388.8585279587105
-Feature 7: coef=10893.08348674716
-Feature 8: coef=28046.07810021374
-Feature 9: coef=35551.0345720628</code></pre>
+Coefficient significance statistics (StdErr, t-values, p-values) are not available in this Spark environment.</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>                                                                                </code></pre>
@@ -445,10 +413,10 @@ Feature 9: coef=35551.0345720628</code></pre>
 </section>
 <section id="linear-regression" class="level1" data-number="2">
 <h1 data-number="2"><span class="header-section-number">2</span> Linear Regression</h1>
-<div id="1a287587" class="cell" data-execution_count="4">
+<div id="9f725958" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-stderr">
-<pre><code>[Stage 67:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 70:&gt;                                                         (0 + 1) / 1]                                                                                25/09/27 06:11:53 WARN Instrumentation: [aa0dac28] regParam is zero, which might cause numerical instability and overfitting.
-[Stage 73:&gt;                                                         (0 + 1) / 1]                                                                                25/09/27 06:12:01 WARN Instrumentation: [aa0dac28] Cholesky solver failed due to singular covariance matrix. Retrying with Quasi-Newton solver.
+<pre><code>[Stage 67:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 70:&gt;                                                         (0 + 1) / 1]                                                                                25/09/28 02:24:08 WARN Instrumentation: [212c73d9] regParam is zero, which might cause numerical instability and overfitting.
+[Stage 73:&gt;                                                         (0 + 1) / 1]                                                                                25/09/28 02:24:15 WARN Instrumentation: [212c73d9] Cholesky solver failed due to singular covariance matrix. Retrying with Quasi-Newton solver.
 [Stage 74:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 75:&gt;                                                         (0 + 1) / 1]                                                                                </code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
@@ -500,14 +468,14 @@ Solver used: auto</code></pre>
 </section>
 <section id="random-forest-regressor" class="level1" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> Random Forest Regressor</h1>
-<div id="cb121171" class="cell" data-execution_count="5">
+<div id="6dc9b15b" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-stderr">
-<pre><code>[Stage 78:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 81:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 84:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 85:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 86:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 88:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 90:&gt;                                                         (0 + 1) / 1][Stage 91:&gt;                                                         (0 + 1) / 1]                                                                                25/09/27 06:13:20 WARN DAGScheduler: Broadcasting large task binary with size 1427.0 KiB
-[Stage 92:&gt;                                                         (0 + 1) / 1][Stage 93:&gt;                                                         (0 + 1) / 1]                                                                                25/09/27 06:13:24 WARN DAGScheduler: Broadcasting large task binary with size 2.0 MiB
-[Stage 94:&gt;                                                         (0 + 1) / 1][Stage 95:&gt;                                                         (0 + 1) / 1]                                                                                25/09/27 06:13:28 WARN DAGScheduler: Broadcasting large task binary with size 2.7 MiB
-[Stage 96:&gt;                                                         (0 + 1) / 1][Stage 97:&gt;                                                         (0 + 1) / 1]                                                                                25/09/27 06:13:34 WARN DAGScheduler: Broadcasting large task binary with size 3.4 MiB
-[Stage 98:&gt;                                                         (0 + 1) / 1][Stage 99:&gt;                                                         (0 + 1) / 1]                                                                                25/09/27 06:13:40 WARN DAGScheduler: Broadcasting large task binary with size 3.9 MiB
-[Stage 100:&gt;                                                        (0 + 1) / 1][Stage 101:&gt;                                                        (0 + 1) / 1]                                                                                25/09/27 06:13:47 WARN DAGScheduler: Broadcasting large task binary with size 4.4 MiB
+<pre><code>[Stage 78:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 81:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 84:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 85:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 86:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 88:&gt;                                                         (0 + 1) / 1]                                                                                [Stage 90:&gt;                                                         (0 + 1) / 1][Stage 91:&gt;                                                         (0 + 1) / 1]                                                                                25/09/28 02:25:27 WARN DAGScheduler: Broadcasting large task binary with size 1427.0 KiB
+[Stage 92:&gt;                                                         (0 + 1) / 1][Stage 93:&gt;                                                         (0 + 1) / 1]                                                                                25/09/28 02:25:31 WARN DAGScheduler: Broadcasting large task binary with size 2.0 MiB
+[Stage 94:&gt;                                                         (0 + 1) / 1][Stage 95:&gt;                                                         (0 + 1) / 1]                                                                                25/09/28 02:25:35 WARN DAGScheduler: Broadcasting large task binary with size 2.7 MiB
+[Stage 96:&gt;                                                         (0 + 1) / 1][Stage 97:&gt;                                                         (0 + 1) / 1]                                                                                25/09/28 02:25:40 WARN DAGScheduler: Broadcasting large task binary with size 3.4 MiB
+[Stage 98:&gt;                                                         (0 + 1) / 1][Stage 99:&gt;                                                         (0 + 1) / 1]                                                                                25/09/28 02:25:47 WARN DAGScheduler: Broadcasting large task binary with size 3.9 MiB
+[Stage 100:&gt;                                                        (0 + 1) / 1][Stage 101:&gt;                                                        (0 + 1) / 1]                                                                                25/09/28 02:25:54 WARN DAGScheduler: Broadcasting large task binary with size 4.4 MiB
 [Stage 102:&gt;                                                        (0 + 1) / 1][Stage 103:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 104:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 105:&gt;                                                        (0 + 1) / 1]                                                                                </code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
@@ -526,26 +494,34 @@ Length of importances: 1049</code></pre>
 </div>
 <p><strong>Analysis</strong> For the random forest model, I set 200 trees with a maximum depth of 8. The results show an RMSE of approximately 25,820 and an R² of approximately 0.50. This model actually performs worse than the linear and polynomial regression models, which have an R² of approximately 0.57. The error is larger, and the model explains less salary variation. The chart shows that the most important variables are the minimum and maximum years of experience, and the squared experience term. Some company names also appear significant, while posting date and job characteristics have less influence. This suggests that experience and employer influence salary more than job posting date or job title itself.</p>
 </section>
-<section id="compare-glr-polynomial-rf" class="level1" data-number="4">
-<h1 data-number="4"><span class="header-section-number">4</span> Compare GLR, Polynomial, RF</h1>
-<div id="855aec82" class="cell" data-execution_count="6">
+<section id="module-7-compare-models" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Module 7: Compare Models</h1>
+<div id="9c92e560" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-stderr">
-<pre><code>[Stage 106:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 109:&gt;                                                        (0 + 1) / 1]                                                                                25/09/27 06:14:26 WARN Instrumentation: [99abad8b] regParam is zero, which might cause numerical instability and overfitting.
-[Stage 112:&gt;                                                        (0 + 1) / 1]                                                                                25/09/27 06:14:33 WARN Instrumentation: [99abad8b] Cholesky solver failed due to singular covariance matrix. Retrying with Quasi-Newton solver.
-[Stage 113:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 114:&gt;                                                        (0 + 1) / 1]                                                                                </code></pre>
+<pre><code>[Stage 106:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 109:&gt;                                                        (0 + 1) / 1]                                                                                25/09/28 02:26:30 WARN Instrumentation: [99071d01] regParam is zero, which might cause numerical instability and overfitting.
+[Stage 112:&gt;                                                        (0 + 1) / 1]                                                                                25/09/28 02:26:37 WARN Instrumentation: [99071d01] Cholesky solver failed due to singular covariance matrix. Retrying with Quasi-Newton solver.
+[Stage 113:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 114:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 115:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 116:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 119:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 120:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 123:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 124:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 125:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 126:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 127:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 128:&gt;                                                        (0 + 1) / 1]                                                                                </code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>GLR RMSE: 23996.10062229988
-GLR R²: 0.5704820045347927</code></pre>
+<pre><code>                   Model          RMSE        R²           MAE           AIC  \
+0                    GLR  23996.100622  0.570482  15697.052127  70128.247702   
+1  Polynomial Regression  23913.607924  0.573430  15553.715150           N/A   
+2          Random Forest  25820.155984  0.502701  18920.904152           N/A   
+
+            BIC  
+0  74891.774146  
+1           N/A  
+2           N/A  </code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>[Stage 115:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 118:&gt;                                                        (0 + 1) / 1]</code></pre>
+<pre><code>[Stage 129:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 130:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 131:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 134:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 137:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 140:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 143:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 144:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 145:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 148:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 151:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 154:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 157:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 158:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 159:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 162:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 165:&gt;                                                        (0 + 1) / 1]                                                                                [Stage 168:&gt;                                                        (0 + 1) / 1]                                                                                </code></pre>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>GLR AIC: 70128.2477019912</code></pre>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="assignment04-yibei23_files/figure-html/cell-7-output-4.png" class="img-fluid figure-img"></p>
+</figure>
 </div>
-<div class="cell-output cell-output-stderr">
-<pre><code>                                                                                </code></pre>
 </div>
 </div>
 </section>
